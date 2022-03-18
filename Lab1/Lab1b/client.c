@@ -10,33 +10,53 @@
 #include <unistd.h>
 
 
-#define SERWER "127.0.0.1"
+#define SERVER "127.0.0.1"
 #define MAX_BUF 128
 
 int main() {
-    struct addrinfo h, *r;
+    struct addrinfo h, *r, c;
     int s;
-    char my_string[MAX_BUF];
+    unsigned int c_len = sizeof(c);
+    char to_send[MAX_BUF];
+    char received[MAX_BUF];
+
     memset(&h, 0, sizeof(struct addrinfo));
     h.ai_family = PF_INET;
     h.ai_socktype = SOCK_DGRAM;
 
-    if (getaddrinfo(SERWER, "12345", &h, &r) != 0) {
-
+    if (getaddrinfo(SERVER, "12345", &h, &r) != 0) {
+        printf("addrinfo error\n");
     }
 
     if ((s = socket(r->ai_family, r->ai_socktype, r->ai_protocol)) == -1) {
-
+        printf("socket error\n");
     }
 
-    snprintf(my_string, MAX_BUF, "Test message.");
-    size_t pos = sendto(s, my_string, strlen(my_string), 0, r->ai_addr, r->ai_addrlen);
+    snprintf(to_send, MAX_BUF, "hello_message");
 
+    size_t pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
     if (pos < 0) {
-        printf("ERROR: %s. in %s:%d", strerror(errno), __FILE__, __LINE__);
+        printf("ERROR: %s\n", strerror(errno));
+        exit(-4);
     }
-    freeaddrinfo(r);
-    close(s);
 
+    for(;;){
+        pos=recvfrom(s, received, MAX_BUF, 0, (struct sockaddr*)&c, &c_len );
+        if (pos < 0) {
+            printf("ERROR: %s\n", strerror(errno));
+            exit(-4);
+        }
 
+        received[pos] = '\0';
+        printf("Recv(%s:%d): %s\n", inet_ntoa(((struct sockaddr_in *) &c)->sin_addr),
+               ntohs(((struct sockaddr_in *) &c)->sin_port), received);
+
+        snprintf(to_send, MAX_BUF, "RE: %s", received);
+        pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
+        if (pos < 0) {
+            printf("ERROR: %s\n", strerror(errno));
+            exit(-4);
+        }
+
+    }
 }
