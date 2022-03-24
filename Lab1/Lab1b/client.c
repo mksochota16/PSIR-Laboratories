@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <unistd.h>
 
 #define SERVER "127.0.0.1"
 #define PORT "17170"
@@ -36,18 +35,6 @@ int main() {
 
     snprintf(to_send, MAX_BUF, "hello_message");
     size_t pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
-    if (pos < 0) {
-        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
-        exit(1);
-    }
-    sleep(2);
-    pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
-    if (pos < 0) {
-        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
-        exit(1);
-    }
-    sleep(2);
-    pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
     if (pos < 0) {
         printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
         exit(1);
