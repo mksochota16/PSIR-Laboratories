@@ -1,5 +1,4 @@
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <netdb.h>
 #include <errno.h>
 #include <arpa/inet.h>
@@ -22,7 +21,7 @@ int main() {
     hints.ai_flags = AI_PASSIVE;
 
     if (getaddrinfo(NULL, "14982", &hints, &res) != 0) {
-        printf("ERROR could not return an addrinfo structure");
+        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
         return -1;
     }
 
@@ -54,14 +53,14 @@ int main() {
         conn_res=recv(new_s, rec_mess, MAX_BUF, 0);
         if(conn_res==0){
             printf("Peer was disconeted\n");
-            break; //kończymy pętle i np.: kończymy działanie programu
+            break;
         }
         else if(conn_res<0){
             printf("ERROR: %s\n", strerror(errno));
-            exit(-4); //napotkano błąd
+            exit(-4);
         }
-        rec_mess[conn_res]='\0';  //odbieramy ciąg nie koniecznie zakończny znakiem ’\0’
-        printf("Recv(): %s\n", rec_mess);
+        rec_mess[conn_res]='\0';
+        printf("Received: %s\n", rec_mess);
     }
     freeaddrinfo(res);
     close(new_s);
