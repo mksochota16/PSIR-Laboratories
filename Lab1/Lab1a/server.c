@@ -56,7 +56,7 @@ int main() {
     for(;;){
         conn_res=recv(new_s, rec_mess, MAX_BUF, 0);
         if(conn_res==0){
-            printf("Peer was disconeted\n");
+            printf("Peer was disconnected\n");
             break;
         }
         else if(conn_res<0){
