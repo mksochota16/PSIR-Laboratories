@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #define SERVER "127.0.0.1"
 #define PORT "17170"
@@ -39,6 +40,18 @@ int main() {
         printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
         exit(1);
     }
+    sleep(2);
+    pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
+    if (pos < 0) {
+        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
+        exit(1);
+    }
+    sleep(2);
+    pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
+    if (pos < 0) {
+        printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
+        exit(1);
+    }
 
 
     for (;;) {
@@ -52,7 +65,8 @@ int main() {
         printf("Recv(%s:%d): %s\n", inet_ntoa(((struct sockaddr_in *) &c)->sin_addr),
                ntohs(((struct sockaddr_in *) &c)->sin_port), received);
 
-        snprintf(to_send, MAX_BUF, "RE:%s", received);
+        snprintf(to_send, MAX_BUF, "RE:%s", received); //security problem, possible buffer overflow
+
         pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
         if (pos < 0) {
             printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);

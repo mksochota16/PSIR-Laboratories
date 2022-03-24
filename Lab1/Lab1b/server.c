@@ -16,6 +16,7 @@
 #define SEND_INTERVAL_FLOOR 100000
 #define SEND_INTERVAL_CEILING 1570000
 #define SERVER_MESSAGE_LEN 18
+#define IP_STR_SIZE 15
 
 void gen_random_str(char *s, int len);
 
@@ -33,9 +34,6 @@ struct conninfo {
     int *clients_cnt;
     struct sockaddr_in *clients;
 };
-
-//Przydalo by sie zrobic jakis "protokol" warstwy aplikacyjnej i [naglowek][message]
-//i w naglowku info czy to wiadomosc HELLO, czy wiadomosc z danymi(odpowiedz na dane z servera)
 
 int main() {
     struct addrinfo hints, *res, c;
@@ -85,8 +83,8 @@ void *listener(void *param) {
 
     struct conninfo *info = (struct conninfo *) param;
 
-    //jesli do recvfrom() prekazujemy dereferencjie "recvfrom(*info->s)", wartosc pointera *s otrzymuje wartosc NULL
     int local_s = *info->s;
+    short already_con = 0;
 
     for (;;) {
         ssize_t pos = recvfrom(local_s, received, MAX_BUF, 0, (struct sockaddr *) &info->c, info->c_len);
@@ -94,9 +92,22 @@ void *listener(void *param) {
             printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
             exit(1);
         }
-
+        already_con = 0;
         received[pos] = '\0';
         if (memcmp(received, hello_massage, sizeof(hello_massage)) == 0) {
+            // check if this client (ip:port) is already connected. if yes, skip this hello message
+            for(int i = 0; i < MAX_CLIENT_COUNT; i++){
+                if(memcmp(inet_ntoa(info->clients[i].sin_addr), inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr), IP_STR_SIZE) == 0 &&
+                        ntohs(info->clients[i].sin_port) == ntohs(((struct sockaddr_in *) &info->c)->sin_port)){
+                    printf("Client %s:%d - already connected\n", inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr),
+                           ntohs(((struct sockaddr_in *) &info->c)->sin_port));
+                    already_con = 1;
+                    break;
+                }
+            }
+            if(already_con == 1)
+                continue;
+
             memcpy(&(info->clients[(*info->clients_cnt) % MAX_CLIENT_COUNT]), (struct sockaddr_in *) &(info->c),
                    sizeof(struct addrinfo));
             (*info->clients_cnt)++;
@@ -116,7 +127,6 @@ void *sender(void *param) {
     struct conninfo *info = (struct conninfo *) param;
     srand(time(NULL));
 
-    //jesli do recvfrom() prekazujemy dereferencjie "recvfrom(*info->s)", wartosc pointera *s otrzymuje wartosc NULL
     int local_s = *info->s;
 
     for (;;) {
