@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #define MAX_BUF 128
 
@@ -14,6 +15,8 @@ int main() {
     int s, new_s;
     char client_ip_str[INET_ADDRSTRLEN];
     struct addrinfo hints, *res;
+    time_t t;
+    struct tm tm;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = PF_INET;
@@ -49,6 +52,7 @@ int main() {
 
     long conn_res;
     unsigned char rec_mess[MAX_BUF];
+    int i = 0;
     for(;;){
         conn_res=recv(new_s, rec_mess, MAX_BUF, 0);
         if(conn_res==0){
@@ -60,7 +64,9 @@ int main() {
             exit(-4);
         }
         rec_mess[conn_res]='\0';
-        printf("Received: %s\n", rec_mess);
+        t = time(NULL);
+        tm = *localtime(&t);
+        printf("Received message no %d:[ %s ] at %d-%02d-%02d %02d:%02d:%02d\n", i++, rec_mess, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     }
     freeaddrinfo(res);
     close(new_s);

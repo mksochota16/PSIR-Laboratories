@@ -31,14 +31,14 @@ int main(){
         printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
         return -1;
     }
-    for(int i=0;i<10;i++){
+    for(int i=0;i<100;i++){
         usleep(1040000);
         t = time(NULL);
         tm = *localtime(&t);
-        snprintf(my_string, MAX_LINE, "%d-%02d-%02d %02d:%02d:%02d\r\n",
+        snprintf(my_string, MAX_LINE, "%d-%02d-%02d %02d:%02d:%02d",
                  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
         if(send(s, my_string, strlen(my_string), 0)>0){
-            printf("Wyslalem\n");
+            printf("Sent message no %d at %s\n", i,my_string);
         }
         else{
             printf("ERROR: %s (%s:%d)\n", strerror(errno), __FILE__, __LINE__);
