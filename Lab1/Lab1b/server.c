@@ -84,7 +84,9 @@ void *listener(void *param) {
     struct conninfo *info = (struct conninfo *) param;
 
     int local_s = *info->s;
-    short already_con = 0;
+    struct sockaddr_in *soc_addr_in_c = (struct sockaddr_in *) &(info->c);
+
+    short already_con;
 
     for (;;) {
         ssize_t pos = recvfrom(local_s, received, MAX_BUF, 0, (struct sockaddr *) &info->c, info->c_len);
@@ -94,13 +96,14 @@ void *listener(void *param) {
         }
         already_con = 0;
         received[pos] = '\0';
+
         if (memcmp(received, hello_massage, sizeof(hello_massage)) == 0) {
             // check if this client (ip:port) is already connected. if yes, skip this hello message
             for(int i = 0; i < MAX_CLIENT_COUNT; i++){
-                if(memcmp(inet_ntoa(info->clients[i].sin_addr), inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr), IP_STR_SIZE) == 0 &&
-                        ntohs(info->clients[i].sin_port) == ntohs(((struct sockaddr_in *) &info->c)->sin_port)){
-                    printf("Client %s:%d - already connected\n", inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr),
-                           ntohs(((struct sockaddr_in *) &info->c)->sin_port));
+                if(memcmp(inet_ntoa(info->clients[i].sin_addr), inet_ntoa(soc_addr_in_c->sin_addr), IP_STR_SIZE) == 0 &&
+                        ntohs(info->clients[i].sin_port) == ntohs(soc_addr_in_c->sin_port)){
+                    printf("Client %s:%d - already connected\n", inet_ntoa(soc_addr_in_c->sin_addr),
+                           ntohs(soc_addr_in_c->sin_port));
                     already_con = 1;
                     break;
                 }
@@ -108,16 +111,16 @@ void *listener(void *param) {
             if(already_con == 1)
                 continue;
 
-            memcpy(&(info->clients[(*info->clients_cnt) % MAX_CLIENT_COUNT]), (struct sockaddr_in *) &(info->c),
+            memcpy(&(info->clients[(*info->clients_cnt) % MAX_CLIENT_COUNT]), soc_addr_in_c,
                    sizeof(struct addrinfo));
             (*info->clients_cnt)++;
-            printf("New client: (%s:%d)\n", inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr),
-                   ntohs(((struct sockaddr_in *) &info->c)->sin_port));
+            printf("New client: (%s:%d)\n", inet_ntoa(soc_addr_in_c->sin_addr),
+                   ntohs(soc_addr_in_c->sin_port));
         } else {
             get_time(time_str);
             printf("[TIME]:%s | [SRC]:(%s:%d) | [MSG]: %s\n", time_str,
-                   inet_ntoa(((struct sockaddr_in *) &(info->c))->sin_addr),
-                   ntohs(((struct sockaddr_in *) &info->c)->sin_port), received);
+                   inet_ntoa(soc_addr_in_c->sin_addr),
+                   ntohs(soc_addr_in_c->sin_port), received);
         }
     }
 }
