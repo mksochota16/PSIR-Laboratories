@@ -52,7 +52,7 @@ int main() {
         printf("Recv(%s:%d): %s\n", inet_ntoa(((struct sockaddr_in *) &c)->sin_addr),
                ntohs(((struct sockaddr_in *) &c)->sin_port), received);
 
-        snprintf(to_send, MAX_BUF, "RE:%s", received); //security problem, possible buffer overflow
+        snprintf(to_send, MAX_BUF, "RE:%s", received);
 
         pos = sendto(s, to_send, strlen(to_send), 0, r->ai_addr, r->ai_addrlen);
         if (pos < 0) {
