@@ -100,7 +100,7 @@ void *listener(void *param) {
         if (memcmp(received, hello_massage, sizeof(hello_massage)) == 0) {
             // check if this client (ip:port) is already connected. if yes, skip this hello message
             for(int i = 0; i < MAX_CLIENT_COUNT; i++){
-                if(memcmp(inet_ntoa(info->clients[i].sin_addr), inet_ntoa(soc_addr_in_c->sin_addr), IP_STR_SIZE) == 0 &&
+                if(strncmp(inet_ntoa(info->clients[i].sin_addr), inet_ntoa(soc_addr_in_c->sin_addr), IP_STR_SIZE) == 0 &&
                         ntohs(info->clients[i].sin_port) == ntohs(soc_addr_in_c->sin_port)){
                     printf("Client %s:%d - already connected\n", inet_ntoa(soc_addr_in_c->sin_addr),
                            ntohs(soc_addr_in_c->sin_port));
