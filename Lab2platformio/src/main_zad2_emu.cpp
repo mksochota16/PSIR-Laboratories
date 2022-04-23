@@ -118,6 +118,8 @@ void loop() {
             temp_buffer[1] = response_buffer[1] & MASK_VAL_1;
             Serial.print("Wartosc: ");
             Serial.print(temp_buffer[0], HEX);
+            if(temp_buffer[1]<16)
+                Serial.print("0");        
             Serial.println(temp_buffer[1], HEX);
 
             //break to main loop, wait, and send request message again.
