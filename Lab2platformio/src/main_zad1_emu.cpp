@@ -22,7 +22,7 @@ void setup() {
 void loop() {
     Udp.beginPacket(ip, serverPort);
     int sensorValue = (int) ZsutAnalog5Read();
-    String str = String(ZsutMillis()) + " Z5: " + String(sensorValue) + "\n";
+    String str = String(ZsutMillis()) + ":" + String(sensorValue) + "\n";
     Serial.print(F("SEND: "));
     Serial.println(str);
     Udp.write(str.c_str(), str.length());
